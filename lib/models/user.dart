@@ -1,7 +1,7 @@
 class User {
   final String id;
-  final String name;
-  final String email;
+  String name;
+  String email;
   final String profilePictureUrl;
   final bool isIdVerified;
   final bool isPhoneVerified;
