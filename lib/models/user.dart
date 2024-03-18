@@ -2,7 +2,7 @@ class User {
   final String id;
   String name;
   String email;
-  final String profilePictureUrl;
+  String profilePictureUrl;
   final bool isIdVerified;
   final bool isPhoneVerified;
 
