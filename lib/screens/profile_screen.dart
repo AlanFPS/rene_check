@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/user.dart';
 import '../utils/mock_data.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -14,14 +16,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final ImagePicker _picker = ImagePicker(); // Instantiate ImagePicker
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile =
-        await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        // Update user's profile picture URL with new image
-        // In real app I'd update the user's profile picture URL with server
-        user.profilePictureUrl = pickedFile.path;
-      });
+    var status = await Permission.storage.status; // Use storage for Android
+    if (!status.isGranted) {
+      status = await Permission.storage.request();
+    }
+
+    if (status.isGranted) {
+      final XFile? pickedFile =
+          await _picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        setState(() {
+          user.profilePictureUrl = pickedFile.path;
+        });
+      }
+    } else {
+      print('Gallery permission is denied.');
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gallery permission is denied.')));
     }
   }
 
@@ -44,12 +55,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: CircleAvatar(
                     radius: 40,
                     backgroundImage: user.profilePictureUrl.isNotEmpty
-                        ? NetworkImage(user.profilePictureUrl)
-                        : null, // Display the user's profile picture
-                    backgroundColor: Colors.grey[200], // Placeholder color
+                        ? FileImage(File(user.profilePictureUrl))
+                            as ImageProvider
+                        : null,
+                    backgroundColor: Colors.grey[200],
                     child: user.profilePictureUrl.isEmpty
-                        ? Icon(Icons.camera_alt, size: 40)
-                        : null, // Show camera icon if no profile picture
+                        ? Icon(Icons.camera_alt,
+                            size: 30,
+                            color: const Color.fromARGB(255, 61, 61, 61))
+                        : null,
                   ),
                 ),
               ),
